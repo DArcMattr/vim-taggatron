@@ -52,7 +52,9 @@ function! taggatron#CheckCommandList(forceCreate)
     let l:cmdset['tagfile'] = fnamemodify(l:cmdset['tagfile'], ':p')
 
     " Create tag file and ensure that it is in use by the editor
-    call taggatron#CreateTags(l:cmdset, a:forceCreate)
+    if a:forceCreate != -1
+      call taggatron#CreateTags(l:cmdset, a:forceCreate)
+    endif
     call taggatron#SetTags(l:cmdset['tagfile'])
 endfunction
 
@@ -117,8 +119,8 @@ endfunction
 " so this script (implemented in python) finds a tags file for the file vim has
 " just saved, removes all entries for that source file and *then* runs ctags -a
 
-if has("python")
-python << EEOOFF
+if has("python3")
+python3 << EEOOFF
 import os
 import string
 import os.path
@@ -211,7 +213,7 @@ def makeAndAddHandler(logger, name):
 
 
 class AutoTag:
-   MAXTAGSFILESIZE = long(vim_global("maxTagsFileSize"))
+   MAXTAGSFILESIZE = int(vim_global("maxTagsFileSize"))
    DEBUG_NAME = "autotag_debug"
    LOGGER = logging.getLogger(DEBUG_NAME)
    HANDLER = makeAndAddHandler(LOGGER, DEBUG_NAME)
@@ -282,7 +284,7 @@ class AutoTag:
       if line[0] == '!':
          return True
       else:
-         f = string.split(line, '\t')
+         f = line.split(line, '\t')
          AutoTag.LOGGER.log(1, "read tags line:%s", str(f))
          if len(f) > 3 and f[1] not in excluded:
             return True
@@ -296,7 +298,7 @@ class AutoTag:
          for l in input:
             l = l.strip()
             if self.goodTag(l, sources):
-               print l
+               print(l) 
       finally:
          input.close()
          try:
@@ -317,7 +319,7 @@ class AutoTag:
 EEOOFF
 
 function! taggatron#UpdateTags(ctagsCmd,workingDir,tagFile)
-python << EEOOFF
+python3 << EEOOFF
 try:
    tagsFile = vim.eval("a:tagFile")
    ( drive, tagsFileNoDrive ) = os.path.splitdrive(tagsFile)
